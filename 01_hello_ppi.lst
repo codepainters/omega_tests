@@ -1,0 +1,51 @@
+              	; --------------------------------------
+              	; zasm: assemble "01_hello_pio.asm"
+              	; opts: --8080
+              	; date: 2023-11-29 09:39:57
+              	; --------------------------------------
+
+
+              	; 
+              	; Simple test toggling PA[7..0] outputs endlessly, avoiding RAM access.
+              	;
+              	
+              	
+00A8:         	PPI_PA      equ     0xA8
+00A9:         	PPI_PB      equ     0xA9
+00AA:         	PPI_PC      equ     0xAA
+00AB:         	PPI_CTRL    equ     0xAB
+              	
+              	
+0000:         	.org    0x0000
+              	
+              	    ; configure 8255 
+              	    ; PA - output, PB - input, PC - output
+0000: 3E82    	    LD      A, 0x82
+0002: D3AB    	    OUT     (PPI_CTRL), A
+              	
+0004:         	loop:
+0004: 3EAA    	    LD      A, 0xAA
+0006: D3AA    	    OUT     (PPI_PC), A
+0008: 3E55    	    LD      A, 0x55
+000A: D3AA    	    OUT     (PPI_PC), A
+000C: C30400  	    JP      loop
+
+
+; +++ segments +++
+
+#CODE          = $0000 =     0,  size = $000F =    15
+
+; +++ global symbols +++
+
+PPI_CTRL = $00AB =   171          01_hello_pio.asm:9
+PPI_PA   = $00A8 =   168          01_hello_pio.asm:6 (unused)
+PPI_PB   = $00A9 =   169          01_hello_pio.asm:7 (unused)
+PPI_PC   = $00AA =   170          01_hello_pio.asm:8
+_8080_   = $0001 =     1          01_hello_pio.asm:1 (unused)
+_end     = $000F =    15          01_hello_pio.asm:12 (unused)
+_size    = $000F =    15          01_hello_pio.asm:12 (unused)
+loop     = $0004 =     4          01_hello_pio.asm:19
+
+
+total time: 0.0003 sec.
+no errors
