@@ -1,7 +1,7 @@
               	; --------------------------------------
-              	; zasm: assemble "01_hello_pio.asm"
+              	; zasm: assemble "01_hello_ppi.asm"
               	; opts: --8080
-              	; date: 2023-11-29 09:39:57
+              	; date: 2023-12-08 11:52:36
               	; --------------------------------------
 
 
@@ -37,15 +37,15 @@
 
 ; +++ global symbols +++
 
-PPI_CTRL = $00AB =   171          01_hello_pio.asm:9
-PPI_PA   = $00A8 =   168          01_hello_pio.asm:6 (unused)
-PPI_PB   = $00A9 =   169          01_hello_pio.asm:7 (unused)
-PPI_PC   = $00AA =   170          01_hello_pio.asm:8
-_8080_   = $0001 =     1          01_hello_pio.asm:1 (unused)
-_end     = $000F =    15          01_hello_pio.asm:12 (unused)
-_size    = $000F =    15          01_hello_pio.asm:12 (unused)
-loop     = $0004 =     4          01_hello_pio.asm:19
+PPI_CTRL = $00AB =   171          01_hello_ppi.asm:9
+PPI_PA   = $00A8 =   168          01_hello_ppi.asm:6 (unused)
+PPI_PB   = $00A9 =   169          01_hello_ppi.asm:7 (unused)
+PPI_PC   = $00AA =   170          01_hello_ppi.asm:8
+_8080_   = $0001 =     1          01_hello_ppi.asm:1 (unused)
+_end     = $000F =    15          01_hello_ppi.asm:12 (unused)
+_size    = $000F =    15          01_hello_ppi.asm:12 (unused)
+loop     = $0004 =     4          01_hello_ppi.asm:19
 
 
-total time: 0.0003 sec.
+total time: 0.0004 sec.
 no errors

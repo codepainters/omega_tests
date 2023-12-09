@@ -1,4 +1,4 @@
-OBJS=01_hello_ppi.rom 
+OBJS=01_hello_ppi.rom 02_write_ssl.rom
 
 %.rom : %.asm
 	zasm -wu --8080 $<

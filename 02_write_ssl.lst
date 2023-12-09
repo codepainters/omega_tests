@@ -1,0 +1,63 @@
+              	; --------------------------------------
+              	; zasm: assemble "02_write_ssl.asm"
+              	; opts: --8080
+              	; date: 2023-12-09 16:17:36
+              	; --------------------------------------
+
+
+              	; 
+              	; This test continuously writes and reads back 
+              	; sub-slot register at 0xFFFF address of slot 3.
+              	;
+              	
+              	
+00A8:         	PPI_PA      equ     0xA8
+00A9:         	PPI_PB      equ     0xA9
+00AA:         	PPI_PC      equ     0xAA
+00AB:         	PPI_CTRL    equ     0xAB
+FFFF:         	SSL_REG     equ     0xFFFF
+              	
+0000:         	.org    0x0000
+              	
+              	    ; configure 8255 
+              	    ; PA - output, PB - input, PC - output
+0000: 3E82    	    LD      A, 0x82
+0002: D3AB    	    OUT     (PPI_CTRL), A
+              	
+              	    ; Setup slots - as we need the right slot at 0xFFFF.
+              	    ; Let's set last page to slot 3, other pages to slot 0.
+0004: 3EC0    	    LD      A, 0xC0
+0006: D3A8    	    OUT     (PPI_PA), A
+              	
+              	    ; start with 0x01
+0008: 21FFFF  	    LD      HL, SSL_REG
+000B: 3E01    	    LD      A, 0x01
+              	
+000D:         	loop:
+              	    ; on each iteration, set SSL to A, read it back to C
+000D: 77      	    LD      (HL), A
+000E: 4E      	    LD      C, (HL)
+              	    ; then rotate A left, loop endlessly
+000F: 07      	    RLCA
+0010: C30D00  	    JP      loop
+
+
+; +++ segments +++
+
+#CODE          = $0000 =     0,  size = $0013 =    19
+
+; +++ global symbols +++
+
+PPI_CTRL = $00AB =   171          02_write_ssl.asm:10
+PPI_PA   = $00A8 =   168          02_write_ssl.asm:7
+PPI_PB   = $00A9 =   169          02_write_ssl.asm:8 (unused)
+PPI_PC   = $00AA =   170          02_write_ssl.asm:9 (unused)
+SSL_REG  = $FFFF = 65535          02_write_ssl.asm:11
+_8080_   = $0001 =     1          02_write_ssl.asm:1 (unused)
+_end     = $0013 =    19          02_write_ssl.asm:13 (unused)
+_size    = $0013 =    19          02_write_ssl.asm:13 (unused)
+loop     = $000D =    13          02_write_ssl.asm:29
+
+
+total time: 0.0003 sec.
+no errors
