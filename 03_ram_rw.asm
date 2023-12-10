@@ -42,13 +42,14 @@ SSL_REGS    equ     0xFFFF
     INC     A
     OUT     (MAP_REG1), A        ; FC    <- 3
 
-    ; mimic C-BIOS here - which starts with 0xFx as slot reg value
+    ; Mimic C-BIOS here - which starts with 0xFx as slot reg value
+    ; This should be enough to detect RAM in slot 3.
     IN      A,(PSL_STAT)
     OR      0xF0
     OUT     (PSL_STAT),A
 
     ; C-BIOS starts with sub-slot 0xF0, but it should eventually 
-    ; find RAM with subslot 2 for page 3 -> hence 0xB0
+    ; find RAM with subslot 2 for page 3 -> hence 0xB0 (10110000 binary)
     LD      A, (SSL_REGS)
     CPL                     ; SSL reads negated
     AND     0x0F

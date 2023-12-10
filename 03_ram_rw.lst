@@ -1,6 +1,6 @@
               	; --------------------------------------
               	; zasm: assemble "03_ram_rw.asm"
-              	; date: 2023-12-10 11:17:06
+              	; date: 2023-12-10 11:20:29
               	; --------------------------------------
 
 
@@ -48,13 +48,14 @@ FFFF:         	SSL_REGS    equ     0xFFFF
 0011: 3C      	    INC     A
 0012: D3FC    	    OUT     (MAP_REG1), A        ; FC    <- 3
               	
-              	    ; mimic C-BIOS here - which starts with 0xFx as slot reg value
+              	    ; Mimic C-BIOS here - which starts with 0xFx as slot reg value
+              	    ; This should be enough to detect RAM in slot 3.
 0014: DBA8    	    IN      A,(PSL_STAT)
 0016: F6F0    	    OR      0xF0
 0018: D3A8    	    OUT     (PSL_STAT),A
               	
               	    ; C-BIOS starts with sub-slot 0xF0, but it should eventually 
-              	    ; find RAM with subslot 2 for page 3 -> hence 0xB0
+              	    ; find RAM with subslot 2 for page 3 -> hence 0xB0 (10110000 binary)
 001A: 3AFFFF  	    LD      A, (SSL_REGS)
 001D: 2F      	    CPL                     ; SSL reads negated
 001E: E60F    	    AND     0x0F
@@ -110,10 +111,10 @@ PSL_STAT = $00A8 =   168          03_ram_rw.asm:10
 SSL_REGS = $FFFF = 65535          03_ram_rw.asm:21
 _end     = $0042 =    66          03_ram_rw.asm:23 (unused)
 _size    = $0042 =    66          03_ram_rw.asm:23 (unused)
-fail     = $0037 =    55          03_ram_rw.asm:78
-loop     = $0025 =    37          03_ram_rw.asm:58
-pulse    = $0039 =    57          03_ram_rw.asm:82
+fail     = $0037 =    55          03_ram_rw.asm:79
+loop     = $0025 =    37          03_ram_rw.asm:59
+pulse    = $0039 =    57          03_ram_rw.asm:83
 
 
-total time: 0.0005 sec.
+total time: 0.0008 sec.
 no errors
