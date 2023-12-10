@@ -1,0 +1,119 @@
+              	; --------------------------------------
+              	; zasm: assemble "03_ram_rw.asm"
+              	; date: 2023-12-10 11:17:06
+              	; --------------------------------------
+
+
+              	; 
+              	; This test
+              	; - sets up slots/subslots/mapper the same way C-BIOS does at startup.
+              	; - continuously writes and reads back  a single RAM location. 
+              	;
+              	; The idea was to debug (with a scope), why C-BIOS fails to detect 
+              	; the RAM.
+              	
+              	; PPI regs - C-BIOS naming
+00A8:         	PSL_STAT    equ     0xA8             ; slot status
+00A9:         	KBD_STAT    equ     0xA9             ; keyboard status
+00AA:         	GIO_REGS    equ     0xAA             ; General IO Register
+00AB:         	PPI_REGS    equ     0xAB             ; PPI register
+              	
+00FC:         	MAP_REG1    equ     0xFC             ; memory mapper: bank in $0000-$3FFF
+00FD:         	MAP_REG2    equ     0xFD             ; memory mapper: bank in $4000-$7FFF
+00FE:         	MAP_REG3    equ     0xFE             ; memory mapper: bank in $8000-$BFFF
+00FF:         	MAP_REG4    equ     0xFF             ; memory mapper: bank in $C000-$FFFF
+              	
+              	
+FFFF:         	SSL_REGS    equ     0xFFFF
+              	
+0000:         	.org    0x0000
+              	
+              	    ; configure 8255 
+              	    ; PA - output, PB - input, PC - output
+0000: 3E82    	    LD      A, 0x82
+0002: D3AB    	    OUT     (PPI_REGS), A
+0004: 3E50    	    LD      A, 0x50
+0006: D3AA    	    OUT     (GIO_REGS), A
+              	
+              	    ; Note: these registers are implemented as [A15:A14] addressed,
+              	    ; using 4 74HCT670 chips (2 for readback).
+              	    ; outputs from these constitute bits A[21:14] of the RAM address.
+              	    ; A[21:19] should always be zero for RAM0_CS to be active.
+0008: AF      	    XOR     A
+0009: D3FF    	    OUT     (MAP_REG4), A        ; FF    <- 0
+000B: 3C      	    INC     A
+000C: D3FE    	    OUT     (MAP_REG3), A        ; FE    <- 1
+000E: 3C      	    INC     A
+000F: D3FD    	    OUT     (MAP_REG2), A        ; FD    <- 2
+0011: 3C      	    INC     A
+0012: D3FC    	    OUT     (MAP_REG1), A        ; FC    <- 3
+              	
+              	    ; mimic C-BIOS here - which starts with 0xFx as slot reg value
+0014: DBA8    	    IN      A,(PSL_STAT)
+0016: F6F0    	    OR      0xF0
+0018: D3A8    	    OUT     (PSL_STAT),A
+              	
+              	    ; C-BIOS starts with sub-slot 0xF0, but it should eventually 
+              	    ; find RAM with subslot 2 for page 3 -> hence 0xB0
+001A: 3AFFFF  	    LD      A, (SSL_REGS)
+001D: 2F      	    CPL                     ; SSL reads negated
+001E: E60F    	    AND     0x0F
+0020: F6B0    	    OR      0xB0
+0022: 32FFFF  	    LD      (SSL_REGS), A    
+              	
+0025:         	loop:
+              	    ; and here is the original RAM presence test
+0025: 2100FF  	    LD      HL, 0xFF00
+              	
+              	    ; XXX *HL = 0x0F, if *HL != 0x0F -> chkram_find_end
+0028: 3E0F    	    LD      A, $0F
+002A: 77      	    LD      (HL), A
+002B: BE      	    CP      (HL)
+002C: 2009    	    JR      NZ, fail
+              	
+              	    ; XXX *HL = 0xF0, if *HL != 0xF0 -> chkram_find_end
+002E: 2F      	    CPL
+002F: 77      	    LD      (HL), A
+0030: BE      	    CP      (HL)
+0031: 2004    	    JR      NZ, fail
+              	
+              	    ; all OK - pulse PC0
+0033: 3E51    	    LD      A, 0x51
+0035: 1802    	    JR      pulse
+              	
+0037:         	fail:
+              	    ; failure - pulse PC0 and PC1
+0037: 3E53    	    LD      A, 0x53
+              	
+0039:         	pulse:
+0039: D3AA    	    OUT     (GIO_REGS), A
+003B: 3E50    	    LD      A, 0x50
+003D: D3AA    	    OUT     (GIO_REGS), A
+003F: C32500  	    JP      loop
+              	    
+
+
+; +++ segments +++
+
+#CODE          = $0000 =     0,  size = $0042 =    66
+
+; +++ global symbols +++
+
+GIO_REGS = $00AA =   170          03_ram_rw.asm:12
+KBD_STAT = $00A9 =   169          03_ram_rw.asm:11 (unused)
+MAP_REG1 = $00FC =   252          03_ram_rw.asm:15
+MAP_REG2 = $00FD =   253          03_ram_rw.asm:16
+MAP_REG3 = $00FE =   254          03_ram_rw.asm:17
+MAP_REG4 = $00FF =   255          03_ram_rw.asm:18
+PPI_REGS = $00AB =   171          03_ram_rw.asm:13
+PSL_STAT = $00A8 =   168          03_ram_rw.asm:10
+SSL_REGS = $FFFF = 65535          03_ram_rw.asm:21
+_end     = $0042 =    66          03_ram_rw.asm:23 (unused)
+_size    = $0042 =    66          03_ram_rw.asm:23 (unused)
+fail     = $0037 =    55          03_ram_rw.asm:78
+loop     = $0025 =    37          03_ram_rw.asm:58
+pulse    = $0039 =    57          03_ram_rw.asm:82
+
+
+total time: 0.0005 sec.
+no errors

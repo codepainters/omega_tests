@@ -1,7 +1,7 @@
-OBJS=01_hello_ppi.rom 02_write_ssl.rom
+OBJS=01_hello_ppi.rom 02_write_ssl.rom 03_ram_rw.rom
 
 %.rom : %.asm
-	zasm -wu --8080 $<
+	zasm -wu $<
 
 all: $(OBJS)
 
